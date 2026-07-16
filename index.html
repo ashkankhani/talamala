@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>قیمت‌های لحظه‌ای</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
+        html, body { height: 100%; overflow: hidden; }
+        body { background-color: #e6ded6; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 480px; padding: 6px 8px; display: flex; flex-direction: column; height: 100vh; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 0 2px; flex-shrink: 0; }
+        .header h1 { font-size: 14px; font-weight: 900; color: #1a1a1a; }
+        .refresh-btn { font-size: 14px; cursor: pointer; background: none; border: none; color: #7a746e; transition: transform 0.3s; }
+        .refresh-btn:hover { color: #1a1a1a; }
+        .refresh-btn.spinning { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+        .full-width { margin-bottom: 6px; }
+        .card { background-color: #fdfbf9; border-radius: 14px; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-btc { flex-direction: row; align-items: center; gap: 8px; padding: 8px 12px; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+        .card-info { text-align: right; flex: 1; min-width: 0; }
+        .card-title { font-size: 11px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-subtitle { font-size: 9px; color: #8a847e; }
+        .card-icon { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .card-icon img { width: 26px; height: 26px; }
+        .card-price { font-size: 15px; font-weight: 900; color: #000; text-align: left; margin-top: 2px; line-height: 1.2; }
+        .btc-info { flex: 1; }
+        .btc-right { display: flex; flex-direction: column; align-items: flex-end; }
+        .card-unit { font-size: 9px; color: #8a847e; direction: ltr; text-align: right; }
+        .bubble-row { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f0ece8; }
+        .bubble-label { font-size: 9px; color: #8a847e; }
+        .bubble-value { font-size: 10px; font-weight: 700; direction: ltr; }
+        .bubble-value.low { color: #2e7d32; }
+        .bubble-value.mid { color: #f57f17; }
+        .bubble-value.high { color: #c62828; }
+        .change-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+        .change-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 6px; direction: ltr; }
+        .change-badge.up { background-color: #e8f5e9; color: #2e7d32; }
+        .change-badge.down { background-color: #ffebee; color: #c62828; }
+        .change-badge.neutral { background-color: #f5f5f5; color: #8a847e; }
+        /* ── دسکتاپ ── */
+        @media (min-width: 600px) {
+            body { align-items: center; }
+            .container { height: auto; max-height: none; max-width: 600px; }
+            html, body { overflow: auto; }
+            .card { min-height: 100px; padding: 12px 16px; }
+            .card-btc { min-height: 90px; padding: 12px 16px; }
+            .card-title { font-size: 13px; }
+            .card-subtitle { font-size: 10px; }
+            .card-price { font-size: 18px; }
+            .card-unit { font-size: 10px; }
+            .bubble-label { font-size: 10px; }
+            .bubble-value { font-size: 11px; }
+            .change-badge { font-size: 10px; }
+            .grid-2 { gap: 10px; }
+            .full-width { margin-bottom: 10px; }
+        }
+        /* ── دسکتاپ بزرگ ── */
+        @media (min-width: 900px) {
+            .container { max-width: 700px; }
+            .card-title { font-size: 14px; }
+            .card-price { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>قیمت‌های لحظه‌ای</h1>
+        <button class="refresh-btn" onclick="refreshAll()" title="بروزرسانی">🔄</button>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تتر USDT</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon"><img src="img/tether.png"></div>
+            </div>
+            <div class="card-price" id="price-usdt">—</div>
+            <div class="change-row"><span id="change-usdt"></span></div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">دلار آمریکا</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🇺🇸</div>
+            </div>
+            <div class="card-price" id="price-usd">—</div>
+            <div class="change-row"><span id="change-usd"></span></div>
+        </div>
+    </div>
+
+    <div class="full-width">
+        <div class="card card-btc">
+            <div class="card-icon"><img src="img/bitcoin.png"></div>
+            <div class="btc-info">
+                <div class="card-title">بیت‌کوین BTC</div>
+                <div class="card-unit" id="unit-btc">در حال دریافت...</div>
+            </div>
+            <div class="btc-right">
+                <div class="card-price" id="price-btc">—</div>
+                <div class="change-row"><span id="change-btc"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">اونس جهانی طلا</div>
+                    <div class="card-subtitle">دلار آمریکا</div>
+                </div>
+                <div class="card-icon">🌍</div>
+            </div>
+            <div class="card-price" id="price-xau">—</div>
+            <div class="change-row"><span id="change-xau"></span></div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">طلای ۱۸ عیار</div>
+                    <div class="card-subtitle">تومان / گرم</div>
+                </div>
+                <div class="card-icon">🧈</div>
+            </div>
+            <div class="card-price" id="price-18ayar">—</div>
+            <div class="change-row"><span id="change-18ayar"></span></div>
+            <div class="bubble-row">
+                <span class="bubble-label">حباب</span>
+                <span class="bubble-value" id="bubble-18ayar">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">نیم سکه</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-nim">—</div>
+            <div class="change-row"><span id="change-nim"></span></div>
+            <div class="bubble-row">
+                <span class="bubble-label">حباب</span>
+                <span class="bubble-value" id="bubble-nim">—</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تمام سکه جدید</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-sekkeh">—</div>
+            <div class="change-row"><span id="change-sekkeh"></span></div>
+            <div class="bubble-row">
+                <span class="bubble-label">حباب</span>
+                <span class="bubble-value" id="bubble-sekkeh">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">ربع سکه</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-rob">—</div>
+            <div class="change-row"><span id="change-rob"></span></div>
+            <div class="bubble-row">
+                <span class="bubble-label">حباب</span>
+                <span class="bubble-value" id="bubble-rob">—</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تمام سکه قدیم</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-bahar">—</div>
+            <div class="change-row"><span id="change-bahar"></span></div>
+            <div class="bubble-row">
+                <span class="bubble-label">حباب</span>
+                <span class="bubble-value" id="bubble-bahar">—</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.navasan.net/initrates.php"></script>
+
+<script>
+// ── Helpers ──────────────────────────────────────────
+function toPersianNum(s) {
+    return s.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+function parseNum(v) {
+    if (v === null || v === undefined || v === '') return 0;
+    return parseFloat(String(v).replace(/,/g, '')) || 0;
+}
+function formatPrice(v) {
+    if (v === null || v === undefined || v === '') return '—';
+    let n = parseNum(v);
+    if (n === 0) return '—';
+    if (n < 1 && n > 0) return toPersianNum(n.toFixed(4));
+    return toPersianNum(Math.round(n).toLocaleString('en-US'));
+}
+function formatUsd(v) {
+    if (v == null || v === '') return '—';
+    let n = parseFloat(v);
+    if (isNaN(n)) return '—';
+    return toPersianNum('$' + Math.round(n).toLocaleString('en-US'));
+}
+function setCard(id, price, fn) {
+    const el = document.getElementById('price-' + id);
+    if (el) el.textContent = fn ? fn(price) : formatPrice(price);
+}
+
+// ── تغییرات (دقیقاً مثل سایت نوسان) ─────────────────
+function setChange(id, currentVal, yesterdayVal) {
+    const el = document.getElementById('change-' + id);
+    if (!el) return;
+    const curr = parseNum(currentVal);
+    const yest = parseNum(yesterdayVal);
+    if (yest === 0 || curr === 0) return;
+    const changeVal = Math.round((curr - yest) * 100) / 100;
+    const changePct = (changeVal / yest) * 100;
+    const sign = changePct > 0 ? '+' : '';
+    el.textContent = sign + Math.round(changeVal).toLocaleString('en-US') + ' (' + sign + changePct.toFixed(2) + '%)';
+    el.className = 'change-badge ' + (changePct > 0.01 ? 'up' : changePct < -0.01 ? 'down' : 'neutral');
+}
+
+// ── حباب ─────────────────────────────────────────────
+function setBubble(id, bubbleVal, priceVal) {
+    const el = document.getElementById('bubble-' + id);
+    if (!el) return;
+    const bub = parseNum(bubbleVal);
+    const price = parseNum(priceVal);
+    if (bub === 0 || price === 0) return;
+    const intrinsic = price - bub;
+    if (intrinsic <= 0) return;
+    const pct = (bub / intrinsic) * 100;
+    el.textContent = toPersianNum(pct.toFixed(1)) + '%';
+    el.className = 'bubble-value ' + (pct < 3 ? 'low' : pct < 10 ? 'mid' : 'high');
+}
+
+// ── منابع داده ───────────────────────────────────────
+let goldData = null;
+let currData = null;
+
+// ── USD + USDT از initrates.php ─────────────────────
+function processRates() {
+    try {
+        if (typeof lastrates === 'undefined' || typeof yesterday === 'undefined') return;
+        setCard('usdt', lastrates.usd_usdt?.value);
+        setChange('usdt', lastrates.usd_usdt?.value, yesterday.usd_usdt?.value);
+        setCard('usd', lastrates.usd_sell?.value);
+        setChange('usd', lastrates.usd_sell?.value, yesterday.usd?.value);
+    } catch (e) { console.error(e); }
+}
+
+// ── BTC از last_currencies.php ──────────────────────
+function renderBtc() {
+    if (!currData || typeof yesterday === 'undefined') return;
+    const btcToman = parseNum(currData.btc?.value);
+    const usdRate = parseNum(yesterday.usd?.value) || 1;
+    const btcUsd = btcToman && usdRate ? Math.round(btcToman / usdRate) : 0;
+    setCard('btc', btcUsd, formatUsd);
+    document.getElementById('unit-btc').textContent = '≈ ' + formatPrice(btcToman) + ' تومان';
+    const btcYest = parseNum(yesterday.usd_btc?.value);
+    if (btcYest > 0 && btcToman > 0) setChange('btc', btcToman, btcYest);
+}
+
+// ── طلا + سکه از gold_rates.php ─────────────────────
+function processGold() {
+    if (!goldData || typeof yesterday === 'undefined') return;
+
+    // انس طلا
+    const xauUsd = parseNum(goldData.usd_xau?.value);
+    if (xauUsd > 0) setCard('xau', xauUsd, formatUsd);
+    const xauToman = parseNum(goldData.xau?.value);
+    const xauYest = parseNum(yesterday.xau?.value);
+    if (xauToman > 0 && xauYest > 0) setChange('xau', xauToman, xauYest);
+
+    // ۱۸ عیار
+    const p18 = parseNum(goldData['18ayar']?.value);
+    if (p18 > 0) setCard('18ayar', p18);
+    setBubble('18ayar', goldData.bub_18ayar?.value, p18);
+    const y18 = parseNum(yesterday['18ayar']?.value);
+    if (p18 > 0 && y18 > 0) setChange('18ayar', p18, y18);
+
+    // نیم سکه
+    const pNim = parseNum(goldData.nim?.value);
+    if (pNim > 0) setCard('nim', String(pNim));
+    setBubble('nim', goldData.bub_nim?.value, pNim);
+    const yNim = parseNum(yesterday.nim?.value);
+    if (pNim > 0 && yNim > 0) setChange('nim', pNim, yNim);
+
+    // تمام سکه جدید
+    const pSekkeh = parseNum(goldData.sekkeh?.value);
+    if (pSekkeh > 0) setCard('sekkeh', String(pSekkeh));
+    setBubble('sekkeh', goldData.bub_sekkeh?.value, pSekkeh);
+    const ySekkeh = parseNum(yesterday.sekkeh?.value);
+    if (pSekkeh > 0 && ySekkeh > 0) setChange('sekkeh', pSekkeh, ySekkeh);
+
+    // ربع سکه
+    const pRob = parseNum(goldData.rob?.value);
+    if (pRob > 0) setCard('rob', String(pRob));
+    setBubble('rob', goldData.bub_rob?.value, pRob);
+    const yRob = parseNum(yesterday.rob?.value);
+    if (pRob > 0 && yRob > 0) setChange('rob', pRob, yRob);
+
+    // تمام سکه قدیم
+    const pBahar = parseNum(goldData.bahar?.value);
+    if (pBahar > 0) setCard('bahar', String(pBahar));
+    setBubble('bahar', goldData.bub_bahar?.value, pBahar);
+    const yBahar = parseNum(yesterday.bahar?.value);
+    if (pBahar > 0 && yBahar > 0) setChange('bahar', pBahar, yBahar);
+}
+
+// ── دریافت داده از راه دور ──────────────────────────
+async function fetchRemote() {
+    try {
+        const [gResp, cResp] = await Promise.all([
+            fetch('https://www.navasan.net/gold_rates.php?_=' + Date.now()),
+            fetch('https://www.navasan.net/last_currencies.php?_=' + Date.now())
+        ]);
+        goldData = await gResp.json();
+        currData = await cResp.json();
+        renderBtc();
+        processGold();
+    } catch (e) { console.error('Fetch error:', e); }
+}
+
+// ── رفرش initrates.php ──────────────────────────────
+function refreshRates() {
+    return new Promise(resolve => {
+        const old = document.querySelector('script[src*="initrates.php"]');
+        if (old) old.remove();
+        const s = document.createElement('script');
+        s.src = 'https://www.navasan.net/initrates.php?' + Date.now();
+        s.onload = () => { processRates(); resolve(); };
+        s.onerror = () => resolve();
+        document.body.appendChild(s);
+    });
+}
+
+// ── رفرش کامل ───────────────────────────────────────
+async function refreshAll() {
+    const btn = document.querySelector('.refresh-btn');
+    btn.classList.add('spinning');
+    await Promise.all([refreshRates(), fetchRemote()]);
+    btn.classList.remove('spinning');
+}
+
+// ── شروع ────────────────────────────────────────────
+processRates();
+fetchRemote();
+setInterval(refreshAll, 60000);
+</script>
+
+</body>
+</html>
