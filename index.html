@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>قیمت‌های لحظه‌ای</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: #e6ded6;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* هدر */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 0 2px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 900;
+            color: #1a1a1a;
+        }
+
+        .header .refresh-btn {
+            font-size: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #7a746e;
+            transition: transform 0.3s;
+        }
+
+        .header .refresh-btn:hover { color: #1a1a1a; }
+        .header .refresh-btn.spinning { animation: spin 1s linear infinite; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* شبکه */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .full-width {
+            margin-bottom: 6px;
+        }
+
+        /* کارت */
+        .card {
+            background-color: #fdfbf9;
+            border-radius: 14px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-btc {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+        }
+
+        /* بالای کارت */
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-info { text-align: right; flex: 1; min-width: 0; }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1a1a1a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-subtitle {
+            font-size: 9px;
+            color: #8a847e;
+        }
+
+        .card-icon {
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .card-icon img {
+            width: 26px;
+            height: 26px;
+        }
+
+        .card-price {
+            font-size: 15px;
+            font-weight: 900;
+            color: #000;
+            text-align: left;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        /* BTC */
+        .btc-info { flex: 1; }
+        .btc-right { display: flex; flex-direction: column; align-items: flex-end; }
+
+        .card-unit {
+            font-size: 9px;
+            color: #8a847e;
+            direction: ltr;
+            text-align: right;
+        }
+
+        .card-change {
+            font-size: 9px;
+            font-weight: bold;
+            margin-top: 1px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .card-change.up { color: #2e7d32; }
+        .card-change.down { color: #c62828; }
+        .card-change.neutral { color: #8a847e; }
+
+        /* دسکتاپ - حالت عادی */
+        @media (min-height: 750px) {
+            body { align-items: center; }
+            .container { height: auto; max-height: none; }
+            html, body { overflow: auto; }
+            .card { min-height: 100px; }
+            .card-btc { min-height: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>قیمت‌های لحظه‌ای</h1>
+        <button class="refresh-btn" onclick="refreshData()" title="بروزرسانی">🔄</button>
+    </div>
+
+    <div class="grid-2">
+        <div class="card" id="card-usdt">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تتر USDT</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon"><img src="img/tether.png"></div>
+            </div>
+            <div class="card-price" id="price-usdt">—</div>
+        </div>
+        <div class="card" id="card-usd">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">دلار آمریکا</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🇺🇸</div>
+            </div>
+            <div class="card-price" id="price-usd">—</div>
+        </div>
+    </div>
+
+    <div class="full-width">
+        <div class="card card-btc" id="card-btc">
+            <div class="card-icon"><img src="img/bitcoin.png"></div>
+            <div class="btc-info">
+                <div class="card-title">بیت‌کوین BTC</div>
+                <div class="card-unit" id="unit-btc"></div>
+            </div>
+            <div class="btc-right">
+                <div class="card-price" id="price-btc">—</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card" id="card-xau">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">اونس جهانی طلا</div>
+                    <div class="card-subtitle">دلار آمریکا</div>
+                </div>
+                <div class="card-icon">🌍</div>
+            </div>
+            <div class="card-price" id="price-xau">—</div>
+        </div>
+        <div class="card" id="card-18ayar">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">طلای ۱۸ عیار</div>
+                    <div class="card-subtitle">تومان / گرم</div>
+                </div>
+                <div class="card-icon">🧈</div>
+            </div>
+            <div class="card-price" id="price-18ayar">—</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card" id="card-nim">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">نیم سکه</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-nim">—</div>
+        </div>
+        <div class="card" id="card-sekkeh">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تمام سکه جدید</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-sekkeh">—</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card" id="card-rob">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">ربع سکه</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-rob">—</div>
+        </div>
+        <div class="card" id="card-bahar">
+            <div class="card-top">
+                <div class="card-info">
+                    <div class="card-title">تمام سکه قدیم</div>
+                    <div class="card-subtitle">تومان</div>
+                </div>
+                <div class="card-icon">🪙</div>
+            </div>
+            <div class="card-price" id="price-bahar">—</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.navasan.net/initrates.php"></script>
+
+<script>
+    function toPersianNum(s) {
+        return s.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    function formatPrice(v) {
+        if (v === null || v === undefined || v === '') return '—';
+        let n = typeof v === 'string' ? v.replace(/,/g, '') : v;
+        n = parseFloat(n);
+        if (isNaN(n)) return '—';
+        if (n < 1 && n > 0) return toPersianNum(n.toFixed(4));
+        return toPersianNum(Math.round(n).toLocaleString('en-US'));
+    }
+
+    function formatUsd(v) {
+        if (v == null || v === '') return '—';
+        let n = parseFloat(v);
+        if (isNaN(n)) return '—';
+        return toPersianNum('$' + Math.round(n).toLocaleString('en-US'));
+    }
+
+    function setCard(id, price, fn) {
+        const el = document.getElementById('price-' + id);
+        if (el) el.textContent = fn ? fn(price) : formatPrice(price);
+    }
+
+    function processData() {
+        try {
+            if (typeof lastrates === 'undefined' || typeof yesterday === 'undefined') return;
+
+            setCard('usdt', lastrates.usd_usdt?.value);
+            setCard('usd', lastrates.usd_sell?.value);
+
+            const btcT = parseFloat(String(yesterday.usd_btc?.value || 0).replace(/,/g, ''));
+            const usdR = parseFloat(String(yesterday.usd?.value || 1).replace(/,/g, ''));
+            const btcU = btcT && usdR ? Math.round(btcT / usdR) : 0;
+            setCard('btc', btcU, formatUsd);
+            document.getElementById('unit-btc').textContent = '≈ ' + formatPrice(Math.round(btcU * usdR)) + ' تومان';
+
+            setCard('xau', yesterday.usd_xau?.value, formatUsd);
+            setCard('18ayar', lastrates['18ayar']?.value);
+            setCard('nim', String(parseInt(lastrates.nim?.value?.replace(/,/g, '') || 0) * 1000));
+            setCard('sekkeh', String(parseInt(lastrates.sekkeh?.value?.replace(/,/g, '') || 0) * 1000));
+            setCard('rob', String(parseInt(lastrates.rob?.value?.replace(/,/g, '') || 0) * 1000));
+            setCard('bahar', String(parseInt(lastrates.bahar?.value?.replace(/,/g, '') || 0) * 1000));
+        } catch (e) { console.error(e); }
+    }
+
+    function refreshData() {
+        const btn = document.querySelector('.refresh-btn');
+        btn.classList.add('spinning');
+        const old = document.querySelector('script[src*="initrates.php"]');
+        if (old) old.remove();
+        const s = document.createElement('script');
+        s.src = 'https://www.navasan.net/initrates.php?' + Date.now();
+        s.onload = () => { processData(); btn.classList.remove('spinning'); };
+        s.onerror = () => btn.classList.remove('spinning');
+        document.body.appendChild(s);
+    }
+
+    processData();
+    setInterval(refreshData, 120000);
+</script>
+
+</body>
+</html>
