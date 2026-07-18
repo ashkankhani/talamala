@@ -7,8 +7,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
-        body { background-color: #e6ded6; display: flex; justify-content: center; overflow-y: auto; }
-        .container { width: 100%; max-width: 480px; padding: 6px 8px; display: flex; flex-direction: column; min-height: 100vh; }
+        body { background-color: #e6ded6; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 480px; padding: 6px 8px; display: flex; flex-direction: column; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 0 2px; flex-shrink: 0; }
         .header h1 { font-size: 14px; font-weight: 900; color: #1a1a1a; }
         .refresh-btn { font-size: 14px; cursor: pointer; background: none; border: none; color: #7a746e; transition: transform 0.3s; }
@@ -64,9 +64,8 @@
 
         /* ── دسکتاپ ── */
         @media (min-width: 600px) {
-            body { align-items: center; overflow: hidden; }
-            .container { height: auto; max-height: none; max-width: 600px; min-height: auto; }
-            html, body { overflow: auto; }
+            body { align-items: center; }
+            .container { max-width: 600px; }
             .card { min-height: 100px; padding: 12px 16px; }
             .card-btc { min-height: 90px; padding: 12px 16px; }
             .card-title { font-size: 13px; }
