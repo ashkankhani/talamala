@@ -9,7 +9,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
         html, body { height: 100%; overflow: hidden; }
         body { background-color: #e6ded6; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 480px; padding: 6px 8px; display: flex; flex-direction: column; height: 100vh; }
+        .container { width: 100%; max-width: 480px; padding: 6px 8px; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 0 2px; flex-shrink: 0; }
         .header h1 { font-size: 14px; font-weight: 900; color: #1a1a1a; }
         .refresh-btn { font-size: 14px; cursor: pointer; background: none; border: none; color: #7a746e; transition: transform 0.3s; }
@@ -41,10 +41,32 @@
         .change-badge.up { background-color: #e8f5e9; color: #2e7d32; }
         .change-badge.down { background-color: #ffebee; color: #c62828; }
         .change-badge.neutral { background-color: #f5f5f5; color: #8a847e; }
+
+        /* ── ماشین حساب ── */
+        .calc-card { background: linear-gradient(135deg, #fdfbf9, #f5f0eb); border: 1px solid #e8e2da; border-radius: 14px; padding: 10px 12px; margin-bottom: 6px; }
+        .calc-title { font-size: 12px; font-weight: 900; color: #1a1a1a; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .calc-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .calc-label { font-size: 10px; font-weight: 700; color: #5a544e; min-width: 80px; text-align: right; flex-shrink: 0; }
+        .calc-input {
+            flex: 1; min-width: 0;
+            background: #fff; border: 1.5px solid #e0dbd6; border-radius: 10px;
+            padding: 6px 10px; font-size: 13px; font-weight: 700;
+            font-family: 'Vazirmatn', sans-serif;
+            color: #1a1a1a; direction: ltr; text-align: right;
+            outline: none; transition: border-color 0.2s;
+        }
+        .calc-input:focus { border-color: #c5a55a; }
+        .calc-input::placeholder { color: #ccc; font-weight: 400; }
+        .calc-unit { font-size: 9px; color: #8a847e; min-width: 30px; text-align: right; flex-shrink: 0; }
+        .calc-total { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1.5px dashed #ddd; }
+        .calc-total-label { font-size: 11px; font-weight: 900; color: #1a1a1a; }
+        .calc-total-value { font-size: 16px; font-weight: 900; color: #c5a55a; direction: ltr; text-align: left; }
+        .calc-row-value { font-size: 10px; font-weight: 700; color: #8a847e; min-width: 70px; text-align: left; direction: ltr; flex-shrink: 0; }
+
         /* ── دسکتاپ ── */
         @media (min-width: 600px) {
             body { align-items: center; }
-            .container { height: auto; max-height: none; max-width: 600px; }
+            .container { height: auto; max-height: none; max-width: 600px; overflow: auto; }
             html, body { overflow: auto; }
             .card { min-height: 100px; padding: 12px 16px; }
             .card-btc { min-height: 90px; padding: 12px 16px; }
@@ -57,8 +79,11 @@
             .change-badge { font-size: 10px; }
             .grid-2 { gap: 10px; }
             .full-width { margin-bottom: 10px; }
+            .calc-card { padding: 14px 18px; }
+            .calc-label { font-size: 12px; min-width: 100px; }
+            .calc-input { font-size: 14px; padding: 8px 12px; }
+            .calc-total-value { font-size: 20px; }
         }
-        /* ── دسکتاپ بزرگ ── */
         @media (min-width: 900px) {
             .container { max-width: 700px; }
             .card-title { font-size: 14px; }
@@ -74,6 +99,7 @@
         <button class="refresh-btn" onclick="refreshAll()" title="بروزرسانی">🔄</button>
     </div>
 
+    <!-- ── قیمت‌ها ── -->
     <div class="grid-2">
         <div class="card">
             <div class="card-top">
@@ -207,6 +233,48 @@
             </div>
         </div>
     </div>
+
+    <!-- ── ماشین حساب ── -->
+    <div class="calc-card">
+        <div class="calc-title">🧮 ماشین حساب سرمایه</div>
+
+        <div class="calc-row">
+            <span class="calc-label">تمام سکه جدید</span>
+            <input class="calc-input" type="number" id="calc-sekkeh" placeholder="۰" min="0" step="1" oninput="calcSave()">
+            <span class="calc-unit">عدد</span>
+            <span class="calc-row-value" id="calc-sekkeh-val">—</span>
+        </div>
+        <div class="calc-row">
+            <span class="calc-label">تمام سکه قدیم</span>
+            <input class="calc-input" type="number" id="calc-bahar" placeholder="۰" min="0" step="1" oninput="calcSave()">
+            <span class="calc-unit">عدد</span>
+            <span class="calc-row-value" id="calc-bahar-val">—</span>
+        </div>
+        <div class="calc-row">
+            <span class="calc-label">نیم سکه</span>
+            <input class="calc-input" type="number" id="calc-nim" placeholder="۰" min="0" step="1" oninput="calcSave()">
+            <span class="calc-unit">عدد</span>
+            <span class="calc-row-value" id="calc-nim-val">—</span>
+        </div>
+        <div class="calc-row">
+            <span class="calc-label">ربع سکه</span>
+            <input class="calc-input" type="number" id="calc-rob" placeholder="۰" min="0" step="1" oninput="calcSave()">
+            <span class="calc-unit">عدد</span>
+            <span class="calc-row-value" id="calc-rob-val">—</span>
+        </div>
+        <div class="calc-row">
+            <span class="calc-label">طلای ۱۸ عیار</span>
+            <input class="calc-input" type="number" id="calc-gold" placeholder="۰" min="0" step="0.1" oninput="calcSave()">
+            <span class="calc-unit">گرم</span>
+            <span class="calc-row-value" id="calc-gold-val">—</span>
+        </div>
+
+        <div class="calc-total">
+            <span class="calc-total-label">ارزش کل</span>
+            <span class="calc-total-value" id="calc-total">—</span>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://www.navasan.net/initrates.php"></script>
@@ -264,6 +332,59 @@ function setBubble(id, bubbleVal, priceVal) {
     const pct = (bub / intrinsic) * 100;
     el.textContent = toPersianNum(pct.toFixed(1)) + '%';
     el.className = 'bubble-value ' + (pct < 3 ? 'low' : pct < 10 ? 'mid' : 'high');
+}
+
+// ── ماشین حساب ──────────────────────────────────────
+const calcInputs = ['calc-sekkeh', 'calc-bahar', 'calc-nim', 'calc-rob', 'calc-gold'];
+const calcKeys   = ['sekkeh', 'bahar', 'nim', 'rob', 'gold'];
+
+// قیمت‌های لحظه‌ای (بر حسب تومان)
+function getCalcPrices() {
+    return {
+        sekkeh: parseNum(document.getElementById('price-sekkeh')?.textContent),
+        bahar:  parseNum(document.getElementById('price-bahar')?.textContent),
+        nim:    parseNum(document.getElementById('price-nim')?.textContent),
+        rob:    parseNum(document.getElementById('price-rob')?.textContent),
+        gold:   parseNum(document.getElementById('price-18ayar')?.textContent),
+    };
+}
+
+function calcSave() {
+    // ذخیره در localStorage
+    calcInputs.forEach(id => {
+        const val = document.getElementById(id)?.value || '';
+        localStorage.setItem('calc_' + id, val);
+    });
+    calcUpdate();
+}
+
+function calcLoad() {
+    calcInputs.forEach(id => {
+        const saved = localStorage.getItem('calc_' + id);
+        if (saved !== null) {
+            document.getElementById(id).value = saved;
+        }
+    });
+}
+
+function calcUpdate() {
+    const prices = getCalcPrices();
+    let total = 0;
+
+    calcInputs.forEach((id, i) => {
+        const key = calcKeys[i];
+        const qty = parseFloat(document.getElementById(id)?.value) || 0;
+        const price = prices[key] || 0;
+        const rowTotal = qty * price;
+        total += rowTotal;
+
+        const valEl = document.getElementById(id + '-val');
+        if (valEl) {
+            valEl.textContent = rowTotal > 0 ? formatPrice(rowTotal) + ' ت' : '—';
+        }
+    });
+
+    document.getElementById('calc-total').textContent = total > 0 ? formatPrice(total) + ' تومان' : '—';
 }
 
 // ── منابع داده ───────────────────────────────────────
@@ -338,6 +459,9 @@ function processGold() {
     setBubble('bahar', goldData.bub_bahar?.value, pBahar);
     const yBahar = parseNum(yesterday.bahar?.value);
     if (pBahar > 0 && yBahar > 0) setChange('bahar', pBahar, yBahar);
+
+    // آپدیت ماشین حساب بعد از لود قیمت‌ها
+    calcUpdate();
 }
 
 // ── دریافت داده از راه دور ──────────────────────────
@@ -376,6 +500,7 @@ async function refreshAll() {
 }
 
 // ── شروع ────────────────────────────────────────────
+calcLoad();            // بازیابی مقادیر ذخیره شده
 processRates();
 fetchRemote();
 setInterval(refreshAll, 60000);
