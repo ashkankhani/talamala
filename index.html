@@ -286,7 +286,11 @@ function toPersianNum(s) {
 }
 function parseNum(v) {
     if (v === null || v === undefined || v === '') return 0;
-    return parseFloat(String(v).replace(/,/g, '')) || 0;
+    let s = String(v)
+        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+        .replace(/,/g, '');
+    return parseFloat(s) || 0;
 }
 function formatPrice(v) {
     if (v === null || v === undefined || v === '') return '—';
