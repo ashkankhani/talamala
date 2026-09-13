@@ -133,19 +133,6 @@
         </div>
     </div>
 
-    <div class="full-width">
-        <div class="card card-btc">
-            <div class="card-icon"><img src="img/bitcoin.png" onerror="this.replaceWith(document.createTextNode('₿'))"></div>
-            <div class="btc-info">
-                <div class="card-title">بیت‌کوین BTC</div>
-                <div class="card-unit" id="unit-btc">در حال دریافت...</div>
-            </div>
-            <div class="btc-right">
-                <div class="card-price" id="price-btc">—</div>
-                <div class="change-row"><span id="change-btc"></span></div>
-            </div>
-        </div>
-    </div>
 
     <div class="grid-2">
         <div class="card">
@@ -485,28 +472,31 @@ function processRates() {
 }
 
 // ── BTC از last_currencies.php ──────────────────────
-function renderBtc() {
-    if (!currData || typeof yesterday === 'undefined') return;
-    const btcToman = parseNum(currData.btc?.value);
-    // نرخ دلار امروز باید برای تبدیل استفاده شود، نه دیروز
-    const usdRate = parseNum(lastrates?.usd_sell?.value) || parseNum(yesterday.usd?.value) || 1;
-    const btcUsd = btcToman && usdRate ? Math.round(btcToman / usdRate) : 0;
-    setCard('btc', btcUsd, formatUsd);
-    document.getElementById('unit-btc').textContent = '≈ ' + formatPrice(btcToman) + ' تومان';
-    const btcYest = parseNum(yesterday.usd_btc?.value);
-    if (btcYest > 0 && btcToman > 0) setChange('btc', btcToman, btcYest);
-}
+// function renderBtc() {
+//     if (!currData || typeof yesterday === 'undefined') return;
+//     const btcToman = parseNum(currData.btc?.value);
+//     // نرخ دلار امروز باید برای تبدیل استفاده شود، نه دیروز
+//     const usdRate = parseNum(lastrates?.usd_sell?.value) || parseNum(yesterday.usd?.value) || 1;
+//     const btcUsd = btcToman && usdRate ? Math.round(btcToman / usdRate) : 0;
+//     setCard('btc', btcUsd, formatUsd);
+//     document.getElementById('unit-btc').textContent = '≈ ' + formatPrice(btcToman) + ' تومان';
+//     const btcYest = parseNum(yesterday.usd_btc?.value);
+//     if (btcYest > 0 && btcToman > 0) setChange('btc', btcToman, btcYest);
+// }
 
 // ── طلا + سکه از gold_rates.php ─────────────────────
 function processGold() {
     if (!goldData || typeof yesterday === 'undefined') return;
+    console.log(goldData)
+    console.log(yesterday)
 
     // انس طلا
     const xauUsd = parseNum(goldData.usd_xau?.value);
     if (xauUsd > 0) setCard('xau', xauUsd, formatUsd);
-    const xauToman = parseNum(goldData.xau?.value);
-    const xauYest = parseNum(yesterday.xau?.value);
-    if (xauToman > 0 && xauYest > 0) setChange('xau', xauToman, xauYest);
+    //const xauToman = parseNum(goldData.xau?.value);
+    const xauYest = parseNum(yesterday.usd_xau?.value);
+    console.log(xauUsd,xauYest)
+    if (xauUsd > 0 && xauYest > 0) setChange('xau', xauUsd, xauYest);
 
     // ۱۸ عیار
     const p18 = parseNum(goldData['18ayar']?.value);
@@ -552,7 +542,7 @@ function renderFromCache() {
     const g = cacheGet('cache_gold');
     const c = cacheGet('cache_curr');
     if (g?.d) { goldData = g.d; processGold(); }
-    if (c?.d) { currData = c.d; renderBtc(); }
+    //if (c?.d) { currData = c.d; renderBtc(); }
     if (g || c) markStale();
 }
 
@@ -588,7 +578,7 @@ async function fetchRemote() {
     }
 
     if (anyOk) {
-        renderBtc();
+        //renderBtc();
         processGold();
         setStatus(true, 'به‌روز');
     } else {
