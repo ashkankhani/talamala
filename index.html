@@ -15,7 +15,10 @@
   --font:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0}
-html{color-scheme:dark}
+html{color-scheme:dark;-webkit-text-size-adjust:100%}
+body{overflow-x:hidden}
+.grid>*,.hero>*,.card>*{min-width:0}
+.hero .big{min-width:0}
 body{
   font-family:var(--font); color:var(--ink); min-height:100vh;
   background:
@@ -80,7 +83,7 @@ body{
 .chg.up{background:rgba(95,211,141,.14);color:var(--up)}
 .chg.down{background:rgba(255,122,107,.14);color:var(--down)}
 
-.range{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.range{display:grid;grid-template-columns:auto minmax(24px,1fr) auto;align-items:center;gap:10px;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .range em{display:block;font-style:normal;font-size:.68rem;opacity:.8}
 .range b{font-weight:600;color:var(--ink)}
 .range .hi{text-align:right}.range .lo{text-align:left}
@@ -91,8 +94,15 @@ body{
 .badge{padding:2px 8px;border-radius:6px;background:rgba(226,182,92,.14);color:var(--brass)}
 .badge[hidden]{display:none}
 
-@media (max-width:520px){.hero{padding:22px 18px}.grid{grid-template-columns:1fr 1fr;gap:10px}.card{padding:14px 12px 12px}.price .num{font-size:1.25rem}}
-@media (max-width:360px){.grid{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .grid{grid-template-columns:1fr;gap:12px}
+  .hero{padding:22px 18px 18px;border-radius:22px}
+  .hero .range{flex:1 1 100%;max-width:none}
+  .hero-meta{gap:14px}
+  .card{padding:16px 16px 14px}
+  .price .num{font-size:1.8rem}
+}
+@media (max-width:360px){.hero .num{font-size:2.3rem}.price .num{font-size:1.5rem}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .card{opacity:1;transform:none}
